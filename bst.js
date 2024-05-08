@@ -11,8 +11,9 @@
 function Node(data) {
     let left = null;
     let right = null;
+    let parent = null;
     return {
-        left, right, data
+        left, right, parent, data
     };
 }
 
@@ -48,7 +49,7 @@ function Tree(initArray=[]) {
         return uniqueSorted;
     }
 
-    // this is bugged. 
+    // this is bugged. fix this
     function actuallyBuildBST(sortedUniqueArray, low, high) {
         let midpoint = Math.floor((low + high) / 2);
         if ((low > high) || (midpoint >= sortedUniqueArray.length)) {
@@ -58,7 +59,14 @@ function Tree(initArray=[]) {
         let newNode = Node(sortedUniqueArray[midpoint]);
 
         newNode.left = actuallyBuildBST(sortedUniqueArray, low, midpoint - 1);
+        if (newNode.left) {
+            newNode.left.parent = newNode;
+        }
+
         newNode.right = actuallyBuildBST(sortedUniqueArray, midpoint + 1, high);
+        if (newNode.right) {
+            newNode.right.parent = newNode;
+        }
 
         return newNode;
     }
@@ -205,13 +213,11 @@ function Tree(initArray=[]) {
     function depth(node) {
         let currentNode = root;
         let depthResult = 0;
-        while (currentNode) {
+        while (currentNode && (currentNode.data !== node.data)) {
             if (currentNode.data < node.data) {
                 currentNode = currentNode.right;
             } else if (currentNode.data > node.data) {
                 currentNode = currentNode.left;
-            } else if (currentNode.data === node.data) {
-                break;
             }
             ++depthResult;
         }
@@ -250,23 +256,104 @@ function Tree(initArray=[]) {
         return(result);
     }
 
-    // todo
     function insertItem(value) {
+        if (find(value) !== null) return;
+
+        let newNode = Node(value);
+        let currentNode = root;
+        let parentOfNewNode = newNode;
+
+        while (currentNode) {
+            parentOfNewNode = currentNode;
+            if (newNode.data < currentNode.data) {
+                currentNode = currentNode.left;
+            } else {
+                currentNode = currentNode.right;
+            }
+        }
+
+        newNode.parent = parentOfNewNode;
+        if (parentOfNewNode === null) {
+            root = newNode;
+        } else if (newNode.data < parentOfNewNode.data) {
+            parentOfNewNode.left = newNode;
+        } else {
+            parentOfNewNode.right = newNode;
+        }
         
+        rebalance();
     }
 
-    // todo
+    function transplant(u, v) {
+        if (u.parent === null) {
+            root = v;
+        } else if (u === u.parent.left) {
+            u.parent.left = v;
+        } else {
+            u.parent.right = v;
+        }
+
+        if (v !== null) {
+            v.parent = u.parent;
+        }
+    }
+   
+    function minimum(node) {
+        while (node.left) {
+            node = node.left;
+        }
+
+        return node;
+    }
+
     function deleteItem(value) {
-        
+        // Ok so this is quite complicated. Lets break this down
+        // Lets say, we have a node z to delete. We have three cases to consider
+        // 1. If z has no children, then we simply remove z and modify its parent 
+        //    to replace z as null.
+        // 2. If z has one child, then replace z with that child by modifying z's parent pointing to that child.
+        // 3. If z has two children find z's successor y (successor is simply the next node to visit after z while doing inOrder),
+        //    which belongs to z's right subtree. Then, replace z with y. z's right subtree becomes y's right subtree. Same for left.
+        //    y's left subtree is empty. Why? because y = minimum(z.right), and minimum works by traversing the left subtree of z.right
+        //    until we reach null. y's right child moves into y's original position.
+        //      - if y is z's right child, replace z by y.
+        //      - else if y is in z's right subtree, replace y by its right child and replace z by y. 
+
+        let nodeToDelete = find(value);
+        if (nodeToDelete) {
+            if (nodeToDelete.left === null) {
+                transplant(nodeToDelete, nodeToDelete.right);
+            } else if (nodeToDelete.right === null) {
+                transplant(nodeToDelete, nodeToDelete.left);
+            } else {
+                let successorOfNodeToDelete = minimum(nodeToDelete.right);
+                if (successorOfNodeToDelete !== nodeToDelete.right) {
+                    transplant(successorOfNodeToDelete, successorOfNodeToDelete.right);
+                    successorOfNodeToDelete.right = nodeToDelete.right;
+                    successorOfNodeToDelete.right.parent = successorOfNodeToDelete;
+                }
+               
+                transplant(nodeToDelete, successorOfNodeToDelete);
+                successorOfNodeToDelete.left = nodeToDelete.left;
+                successorOfNodeToDelete.left.parent = successorOfNodeToDelete;
+            }
+
+            rebalance();
+        }
+
+        return nodeToDelete;
     }
 
-    // todo
     function rebalance(params) {
-        
+        if (!isBalanced()) {
+            const inorder = inOrder();
+            root = actuallyBuildBST(inorder, 0, inorder.length - 1);
+        }
     }
 
     return {
-        root, buildTree, find, levelOrder, inOrder, preOrder, postOrder, height, depth, isBalanced
+        buildTree, find, levelOrder, inOrder, preOrder, postOrder, height, depth, isBalanced,
+        insertItem, deleteItem, get root() { return root; },
     };
 }
 
@@ -288,16 +375,18 @@ function prettyPrint(node, prefix="", isLeft=true) {
 
 //let tree = Tree([1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]);
 let tree = Tree([0, 1, 2, 3, 4, 5, 6]);
+tree.insertItem(7)
+tree.insertItem(65.5)
+tree.deleteItem(3);
 prettyPrint(tree.root);
 //console.log(tree.find(324));
-console.log(tree.levelOrder());
 //tree.inOrder(element => {
   //  console.log(element);
 //})
-console.log(tree.inOrder());
-console.log(tree.preOrder());
-console.log(tree.postOrder());
+//console.log(tree.inOrder());
+//console.log(tree.preOrder());
+//console.log(tree.postOrder());
 
-console.log(tree.depth(tree.find(6)));
-console.log(tree.height(tree.root));
-console.log(tree.isBalanced());
+//console.log(tree.depth(tree.find(6)));
+//console.log(tree.height(tree.root));
+//console.log(tree.isBalanced());
