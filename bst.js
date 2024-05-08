@@ -49,10 +49,9 @@ function Tree(initArray=[]) {
         return uniqueSorted;
     }
 
-    // this is bugged. fix this
     function actuallyBuildBST(sortedUniqueArray, low, high) {
         let midpoint = Math.floor((low + high) / 2);
-        if ((low > high) || (midpoint >= sortedUniqueArray.length)) {
+        if (low > high) {
             return null;
         }
 
@@ -72,7 +71,8 @@ function Tree(initArray=[]) {
     }
 
     function buildTree(array) {
-        root = actuallyBuildBST(asSortedUniqueValues(array), 0, array.length - 1);
+        let unique = asSortedUniqueValues(array);
+        root = actuallyBuildBST(unique, 0, unique.length - 1);
         return root;
     }
 
@@ -90,8 +90,8 @@ function Tree(initArray=[]) {
     }
 
     function levelOrder(callback) {
+        let returedArray = [];
         if (root) {
-            let returedArray = [];
             let nodeQueue = [];
 
             nodeQueue.push(root);
@@ -112,11 +112,11 @@ function Tree(initArray=[]) {
                 if (dequeued.right) {
                     nodeQueue.push(dequeued.right);
                 } 
-            }
-
-            if (!callback) {
-                return returedArray;
-            }
+            } 
+        }
+       
+        if (!callback) {
+            return returedArray;
         }
     }
 
@@ -261,7 +261,7 @@ function Tree(initArray=[]) {
 
         let newNode = Node(value);
         let currentNode = root;
-        let parentOfNewNode = newNode;
+        let parentOfNewNode = null;
 
         while (currentNode) {
             parentOfNewNode = currentNode;
@@ -284,6 +284,7 @@ function Tree(initArray=[]) {
         rebalance();
     }
 
+    // basically, replace u with v.
     function transplant(u, v) {
         if (u.parent === null) {
             root = v;
@@ -373,11 +374,14 @@ function prettyPrint(node, prefix="", isLeft=true) {
     }
 }
 
-//let tree = Tree([1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]);
-let tree = Tree([0, 1, 2, 3, 4, 5, 6]);
-tree.insertItem(7)
-tree.insertItem(65.5)
-tree.deleteItem(3);
+let tree = Tree([-1, 1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324, 1000]);
+//let tree = Tree([0, 1, 2, 3, 4, 5, 6]);
+//tree.insertItem(7)
+//tree.insertItem(65.5)
+//tree.deleteItem(8);
+//tree.deleteItem(8);
+prettyPrint(tree.root);
+tree.deleteItem(-1);
 prettyPrint(tree.root);
 //console.log(tree.find(324));
 //tree.inOrder(element => {
