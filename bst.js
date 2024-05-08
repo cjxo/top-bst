@@ -374,15 +374,31 @@ function prettyPrint(node, prefix="", isLeft=true) {
     }
 }
 
-let tree = Tree([-1, 1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324, 1000]);
+function randomArray(elementCount) {
+    let array = []
+    for (let i = 0; i < elementCount; ++i) {
+        array.push(Math.floor(Math.random() * 100));
+    }
+
+    return array;
+}
+
+//let tree = Tree([-1, 1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324, 1000]);
+let tree = Tree(randomArray(20));
+console.log("Is balanced: " + tree.isBalanced());
+console.log(`LevelOrder: [${tree.levelOrder()}]`);
+console.log(`PreOrder: [${tree.preOrder()}]`);
+console.log(`PostOrder: [${tree.postOrder()}]`);
+console.log(`InOrder: [${tree.inOrder()}]`);
+prettyPrint(tree.root);
 //let tree = Tree([0, 1, 2, 3, 4, 5, 6]);
 //tree.insertItem(7)
 //tree.insertItem(65.5)
 //tree.deleteItem(8);
 //tree.deleteItem(8);
-prettyPrint(tree.root);
-tree.deleteItem(-1);
-prettyPrint(tree.root);
+//prettyPrint(tree.root);
+//tree.deleteItem(-1);
+//prettyPrint(tree.root);
 //console.log(tree.find(324));
 //tree.inOrder(element => {
   //  console.log(element);
